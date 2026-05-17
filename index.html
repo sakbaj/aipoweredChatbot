@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Powered QuickBot | Advanced Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            200: '#bae2fd',
+                            300: '#7cc8fb',
+                            400: '#38a9f8',
+                            500: '#0e8ce4',
+                            600: '#026fc7',
+                            700: '#0358a1',
+                            800: '#074b85',
+                            900: '#0c3f6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { 
+            background-color: #f3f4f6; 
+            background-image: radial-gradient(at 0% 0%, hsla(210,100%,93%,1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(225,100%,93%,1) 0, transparent 50%), 
+                              radial-gradient(at 100% 0%, hsla(240,100%,93%,1) 0, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .dark body {
+            background-color: #0f172a;
+            background-image: radial-gradient(at 0% 0%, hsla(210,100%,10%,1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(225,100%,10%,1) 0, transparent 50%), 
+                              radial-gradient(at 100% 0%, hsla(240,100%,10%,1) 0, transparent 50%);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message-appear {
+            animation: messageSlideIn 0.3s ease-out forwards;
+        }
+
+        @keyframes messageSlideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .typing-dot {
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+    </style>
+</head>
+<body class="font-sans flex items-center justify-center h-full p-0 sm:p-4 transition-colors duration-300">
+    <div class="flex flex-col h-full w-full max-w-5xl glass shadow-2xl rounded-none sm:rounded-3xl overflow-hidden relative">
+        <!-- Header -->
+        <header class="px-6 py-4 flex items-center justify-between border-b border-gray-200/50 dark:border-gray-700/50 z-20">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
+                    <i data-lucide="bot" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800 dark:text-white leading-tight">QuickBot AI</h1>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-semibold">Online & Ready</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="clear-btn" class="p-2.5 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all" title="Clear Conversation">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                </button>
+                <button id="theme-toggle" class="p-2.5 text-gray-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-all" title="Toggle Theme">
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-yellow-400"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- Chat Area -->
+        <main id="chat-container" class="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 scroll-smooth">
+            <!-- Welcome Message -->
+            <div class="flex items-start gap-4 message-appear">
+                <div class="flex-shrink-0 w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl rounded-tl-none max-w-[85%] border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                    <p class="text-gray-800 dark:text-gray-200 text-[15px] leading-relaxed">Hello! I'm your advanced AI assistant. How can I help you today?</p>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer / Input -->
+        <footer class="p-4 sm:p-6 bg-white/50 dark:bg-slate-900/50 border-t border-gray-200/50 dark:border-gray-700/50">
+            <!-- Indicators -->
+            <div id="typing-indicator" class="hidden flex items-center gap-2 mb-4 ml-2">
+                <div class="flex gap-1">
+                    <span class="w-1.5 h-1.5 bg-brand-500 rounded-full typing-dot"></span>
+                    <span class="w-1.5 h-1.5 bg-brand-500 rounded-full typing-dot"></span>
+                    <span class="w-1.5 h-1.5 bg-brand-500 rounded-full typing-dot"></span>
+                </div>
+                <span class="text-xs font-medium text-brand-600 dark:text-brand-400 animate-pulse uppercase tracking-wider">AI is thinking...</span>
+            </div>
+            
+            <div id="error-box" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
+                <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                <span id="error-message"></span>
+            </div>
+
+            <!-- Input Form -->
+            <form id="chat-form" class="relative group">
+                <div class="flex items-center bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500 transition-all pl-2 pr-2 py-2">
+                    <button type="button" id="voice-btn" class="p-2.5 text-gray-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl transition-all group/voice" title="Voice Input">
+                        <i data-lucide="mic" class="w-5 h-5 group-active/voice:scale-95 transition-transform"></i>
+                    </button>
+                    <input type="text" id="message-input" placeholder="Ask me anything..." class="flex-1 px-3 py-2 bg-transparent text-gray-800 dark:text-gray-100 focus:outline-none text-[15px]" autocomplete="off">
+                    <button type="submit" id="send-btn" class="p-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-lg shadow-brand-500/20 transition-all active:scale-95 flex items-center justify-center">
+                        <i data-lucide="send-horizontal" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </form>
+            
+            <p class="mt-4 text-center text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] font-medium">
+                Powered by Gemini 2.5 Flash &bull; &copy; 2026 AI Research Lab
+            </p>
+        </footer>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-gray-900 text-white text-xs font-medium rounded-full shadow-xl opacity-0 translate-y-4 pointer-events-none transition-all duration-300 z-50">
+        Copied to clipboard!
+    </div>
+
+    <script>
+        // --- Initialization ---
+        lucide.createIcons();
+
+        // --- Config ---
+        const apiUrl = '/api/chat';
+        let chatHistory = [];
+        let isRecording = false;
+
+        // --- DOM Elements ---
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const chatContainer = document.getElementById('chat-container');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const errorBox = document.getElementById('error-box');
+        const errorMessage = document.getElementById('error-message');
+        const themeToggle = document.getElementById('theme-toggle');
+        const clearBtn = document.getElementById('clear-btn');
+        const voiceBtn = document.getElementById('voice-btn');
+        const toast = document.getElementById('toast');
+
+        // --- Theme Management ---
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        });
+
+        // --- Voice Recognition Setup ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isRecording = true;
+                voiceBtn.classList.add('text-brand-600', 'bg-brand-50', 'animate-pulse');
+                messageInput.placeholder = "Listening...";
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                messageInput.value = transcript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech Error:", event.error);
+                stopRecording();
+            };
+
+            recognition.onend = () => stopRecording();
+
+            function stopRecording() {
+                isRecording = false;
+                voiceBtn.classList.remove('text-brand-600', 'bg-brand-50', 'animate-pulse');
+                messageInput.placeholder = "Ask me anything...";
+            }
+
+            voiceBtn.addEventListener('click', () => {
+                if (isRecording) recognition.stop();
+                else recognition.start();
+            });
+        } else {
+            voiceBtn.style.display = 'none';
+        }
+
+        // --- Clear Conversation ---
+        clearBtn.addEventListener('click', () => {
+            if (confirm("Clear all messages?")) {
+                chatHistory = [];
+                chatContainer.innerHTML = '';
+                addMessageToUI('model', "Conversation cleared. How can I help you now?");
+                lucide.createIcons();
+            }
+        });
+
+        // --- Chat Logic ---
+        async function handleSendMessage(e) {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            addMessageToUI('user', message);
+            
+            if (chatHistory.length === 0) {
+                chatHistory.push({ role: "user", parts: [{ text: "Act as a professional researcher. Use Markdown." }] });
+                chatHistory.push({ role: "model", parts: [{ text: "Understood. Ready for your first topic." }] });
+            }
+            
+            chatHistory.push({ role: "user", parts: [{ text: message }] });
+            messageInput.value = '';
+            typingIndicator.classList.remove('hidden');
+            errorBox.classList.add('hidden');
+            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: chatHistory })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error?.message || `Server Error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const aiText = result.candidates[0].content.parts[0].text;
+                addMessageToUI('model', aiText);
+                chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+
+            } catch (err) {
+                console.error(err);
+                errorMessage.textContent = err.message;
+                errorBox.classList.remove('hidden');
+            } finally {
+                typingIndicator.classList.add('hidden');
+                chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+            }
+        }
+
+        function addMessageToUI(sender, text) {
+            const isUser = sender === 'user';
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex items-start gap-4 message-appear ${isUser ? 'flex-row-reverse' : ''}`;
+            
+            const avatar = isUser 
+                ? `<div class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-sm font-bold text-xs">YOU</div>`
+                : `<div class="flex-shrink-0 w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md"><i data-lucide="bot" class="w-5 h-5"></i></div>`;
+
+            const content = isUser ? text : marked.parse(text);
+            
+            messageDiv.innerHTML = `
+                ${avatar}
+                <div class="group relative ${isUser ? 'bg-brand-600 text-white rounded-tr-none' : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none'} p-5 rounded-2xl max-w-[85%] shadow-sm transition-all hover:shadow-md">
+                    <div class="prose prose-sm dark:prose-invert max-w-none leading-relaxed">${content}</div>
+                    ${!isUser ? `
+                        <button class="copy-btn absolute -bottom-3 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-white dark:bg-slate-700 border border-gray-100 dark:border-gray-600 rounded-lg shadow-sm text-gray-500 hover:text-brand-600 transition-all" title="Copy Response">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            lucide.createIcons();
+            
+            // Add copy functionality
+            if (!isUser) {
+                const copyBtn = messageDiv.querySelector('.copy-btn');
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(text);
+                    showToast();
+                    copyBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-green-500"></i>`;
+                    lucide.createIcons();
+                    setTimeout(() => {
+                        copyBtn.innerHTML = `<i data-lucide="copy" class="w-3.5 h-3.5"></i>`;
+                        lucide.createIcons();
+                    }, 2000);
+                };
+            }
+        }
+
+        function showToast() {
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 2000);
+        }
+
+        chatForm.addEventListener('submit', handleSendMessage);
+    </script>
+</body>
+</html>
